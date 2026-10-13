@@ -1,6 +1,17 @@
 # Abgabe Übungsblatt 1
 Gruppe closedAI; Paul Krüssel #310388, Felix Schäfer #313440
 
+## Projektstart
+Container bauen: `docker compose up --build app` \
+Container starten: `docker compose up -d` \
+Modelle laufen lassen: `docker compose run --rm app *Python Datei im Projekt die ausgeführt werden soll* "*Startprompot*"`
+
+## Aufgabe 1
+Die compose.yaml defniert die 3 Container, die laufen:
+- ollama: Hier laufen die geladenen LLMs. Programme können über die Base URL und den Port 11434 damit kommunizieren und dem Model Prompts schicken.
+- modell-laden: Falls der Container neu gebaut wird, lädt dieser Service die Modelle herunter.
+- app: "Unser" Container. Hier liegen die Python Scripts, die die LLMs steuern. Die Python Scripts holen sich die wichtigen Infos aus den Umgebungsvariablen, welche vor jeder Ausführung so gesetzt werden, wie sie in der .env definiert wurden. Daher kann man dort das Modell ändern, welches genutzt wird, ohne neu bauen zu müssen.
+
 ## Aufgabe 2
 | Frage | Modell | TTFT (ms) | Gesamt (ms) | Antwort brauchbar? |
 |---|---|---|---|---|
