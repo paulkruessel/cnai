@@ -10,6 +10,44 @@ Die compose.yaml defniert die 3 Container, die laufen:
 - ollama: Hier laufen die geladenen LLMs. Programme können über die Base URL und den Port 11434 damit kommunizieren und dem Model Prompts schicken.
 - modell-laden: Falls der Container neu gebaut wird, lädt dieser Service die Modelle herunter.
 - app: "Unser" Container. Hier liegen die Python Scripts, die die LLMs steuern. Die Python Scripts holen sich die wichtigen Infos aus den Umgebungsvariablen, welche vor jeder Ausführung so gesetzt werden, wie sie in der .env definiert wurden. Daher kann man dort das Modell ändern, welches genutzt wird, ohne neu bauen zu müssen.
+# Fragen an das LLM:
+1. Frage: Was gibt es heute in der Mensa?
+- Antwort: Leider kann ich keine direkte Verbindung zu der HTWG Konstanz haben und weiß daher nicht genau, was Heute in der Mensa serviert wird. Es wäre jedoch immer eine gute Idee, sich auf der Website der HTWG zu informieren oder einfach mal bei den Freunden anzuhören, was heute im Buffet gebacken wurde. Vielleicht möchte ich noch einen Anruf an unser Universitätsnetzwerk machen, um mehr Informationen zu sammeln, aber das wäre für mich noch nicht sicher.
+- TTFT: 7428 ms
+- Gesamt: 18385 ms
+2. Frage: Wie melde ich mich zu Prüfungen an?
+- Um dich für die Prüfungen der HTWG Konstanz zu melde, empfehle ich, die Prüfungsverwaltung zu kontaktieren. Sie bieten regelmäßig Informationen und Anleitungen zu den Meldeverfahren auf ihrer Website oder in den Prüfungsplänen an.\
+
+Eine weitere Möglichkeit, ist es, die Prüfungsverwaltung direkt zu kontaktieren und sich persönlich oder telefonisch zu melden. Einige Semester können auch eine Prüfungsanmeldung über das HTWG-Online-Portal erfolgen.
+- TTFT: 707 ms
+- Gesamt: 12858 ms
+
+3. Frage: Schreibe ein kleines Python Script, welches den Nutzer nach Noten fragt und dann daraus einen Durchschnitt berechnet.
+- Antwort: Hier ist ein einfaches Python-Skript, das den Benutzer nach Noten fragt und dann seinen Durchschnitt berechnet:
+```python
+def durchschnitt_bewerten():
+    noten = []
+    wiederholung = 'Ja' if input("Sollten wir diesen Teil noch einmal durchspielen? (Ja/Nei): ") == 'Ja' else 'Nein'
+    
+    while wiederholung == 'Ja':
+        noten.extend([float(input(f"Eine Notenwert für {i+1}:
+       ")) for i in range(5)])
+        wiederholung = input("Sollten wir diesen Teil noch einmal durchspielen? (Ja/Nei): ")
+     
+    if noten: 
+        durchschnitt = sum(noten) / len(noten)
+        print(f"Durchschnitt der Noten: {durchschnitt:.3f}")
+    else:
+        print("Keine Noten eingegeben!")
+
+durchschnitt_bewerten()
+```
+Das Skript verursacht eine Wiederholung von Noten, wenn der Benutzer 'Ja' für die Frage eingegeben hat. Wenn er 'Nein' gibt, wird es aufgehört. Anschließend wird der Durchschnitt der Noten berechnet und ausgegeben.
+
+Bitte beachte, dass dieses Skript nur für persönliche Zwecke verwendet werden kann.
+
+- TTFT: 1395 ms
+- Gesamt: 35067
 
 ## Aufgabe 2
 | Frage | Modell | TTFT (ms) | Gesamt (ms) | Antwort brauchbar? |
