@@ -88,3 +88,10 @@ Temperature 1.2: 5 verschiedene Antworten bei 5 Durchläufen
    1× Die HTWG Konstanz (Hochschule Tübingen am Konstanz) ist eine staatlich anerkannte, öffentlich finanzierte (publizistisch)
    1× Die Hochschule für Technologie, Wirtschaft und Gesellschaft (HTWG) Konstanz ist eine staatliche Hochschule in Deutschland. 
    ```
+
+## Aufgabe 4
+- llama erreicht 3 von 8 korrekte Antworten, qwen erreicht 0 von 8
+- qwen ordnet alle Anliegen bei pruefung ein, unabhängig vom Kontext. Zudem setzt es das Studienfach fast immer auf AIN, frist ist immer entweder im Oktober 2023 oder null oder None, erwartet ist aber kein Jahr.
+- llama kriegt 2 Fragen falsch, da es null statt None antwortet. Bei 7 von 8 Fragen kategorisiert es das Anliegen korrekt ein, zieht man die null, None verwechselungen ab, ist der Studiengang immer korrekt. Auch die Fristen kriegt er fast immer korrekt hin (wenn man null; None weglässt), schreibt aber häufig noch den Wochentag oder ein "bis" bzw. "bis zum" davor, wodurch es durch die Kontrolle fällt.
+- Die Umlenkung hat bei keinen Modellen einen Effekt, qwen ist weiterhin der Meinung, alle ist Prüfung, llama kategorisiert die Mail aber richtig.
+- Wird die das Schema rausgenommen, schlägt die Schemavalidierung fehl und man bekommt kein verarbeitbares JSON vom LLM.

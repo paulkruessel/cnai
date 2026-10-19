@@ -13,7 +13,8 @@ Eure Aufgaben stehen bei den TODO-Kommentaren.
 
 import json
 import sys
-from typing import Literal
+from typing import Literal, cast
+from openai.types.shared_params.response_format_json_schema import ResponseFormatJSONSchema
 
 from pydantic import BaseModel, ValidationError
 
@@ -51,14 +52,31 @@ def einordnen(mail: str, versuche: int = 3) -> Anfrage:
         {"role": "system", "content": SYSTEM_PROMPT},
         {"role": "user", "content": mail},
     ]
-    # TODO 1: Ruft das Modell auf. Wählt eine passende temperature
-    #         und übergebt response_format=schema_von(Anfrage).
-    # TODO 2: Prüft die Antwort mit Anfrage.model_validate_json(...).
-    # TODO 3: Schlägt die Prüfung fehl (ValidationError), versucht es
-    #         erneut, höchstens `versuche`-mal. Gebt bei jedem
-    #         Fehlversuch eine kurze Meldung aus. Klappt es gar
-    #         nicht, werft einen RuntimeError.
-    raise NotImplementedError("TODO: einordnen() umsetzen")
+    for i in range (versuche):
+        response = client.chat.completions.create(
+            model=MODEL,
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": mail},
+            ],
+            stream=False,
+            temperature=0.0, # Beste Ergebnisse bei Temperature 0.0
+            response_format=cast(ResponseFormatJSONSchema, schema_von(Anfrage)),
+        )
+        content = response.choices[0].message.content
+        if content is None:
+            raise RuntimeError("Leere Antwort vom LLM.")
+        try:
+            ergebnis = Anfrage.model_validate_json(content)
+        except:
+            if i == versuche - 1:
+                raise RuntimeError("Could not validate Answer.")
+            print(f"Error validating response: {ergebnis}") # type: ignore
+            continue
+        return ergebnis
+
+    raise RuntimeError("Unreachable: Validation Loop already either returned or raised an error. But Pylance wants this ._.")
+        
 
 
 def auswerten() -> None:
@@ -68,9 +86,17 @@ def auswerten() -> None:
     richtig = 0
     for fall in faelle:
         ergebnis = einordnen(fall["mail"])
-        # TODO 4: Vergleicht ergebnis mit fall["erwartet"]. Zählt einen
-        #         Fall als richtig, wenn das Anliegen stimmt. Gebt für
-        #         jeden Fall Mail, Ergebnis und ✓ oder ✗ aus.
+        erwartet = fall["erwartet"]
+        print(f"Mail: {fall["mail"]}")
+        if ergebnis.anliegen == erwartet["anliegen"] and ergebnis.studiengang == erwartet["studiengang"] and ergebnis.frist == erwartet["frist"]:
+            richtig += 1
+            print(f"Falsches Ergebnis: {ergebnis.anliegen}, {ergebnis.studiengang}, {ergebnis.frist}")
+            print(f"Erwartet: {erwartet["anliegen"]}, {erwartet["studiengang"]}, {erwartet["frist"]}")
+            print("✓")
+        else:
+            print(f"Falsches Ergebnis: {ergebnis.anliegen}, {ergebnis.studiengang}, {ergebnis.frist}")
+            print(f"Erwartet: {erwartet["anliegen"]}, {erwartet["studiengang"]}, {erwartet["frist"]}")
+            print("✗")
     print(f"\n{richtig} von {len(faelle)} Anliegen richtig ({MODEL})")
 
 
