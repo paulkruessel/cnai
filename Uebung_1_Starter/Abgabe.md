@@ -95,3 +95,11 @@ Temperature 1.2: 5 verschiedene Antworten bei 5 Durchläufen
 - llama kriegt 2 Fragen falsch, da es null statt None antwortet. Bei 7 von 8 Fragen kategorisiert es das Anliegen korrekt ein, zieht man die null, None verwechselungen ab, ist der Studiengang immer korrekt. Auch die Fristen kriegt er fast immer korrekt hin (wenn man null; None weglässt), schreibt aber häufig noch den Wochentag oder ein "bis" bzw. "bis zum" davor, wodurch es durch die Kontrolle fällt.
 - Die Umlenkung hat bei keinen Modellen einen Effekt, qwen ist weiterhin der Meinung, alle ist Prüfung, llama kategorisiert die Mail aber richtig.
 - Wird die das Schema rausgenommen, schlägt die Schemavalidierung fehl und man bekommt kein verarbeitbares JSON vom LLM.
+
+## Reflexion
+
+- **Modell in `.env`:** So können wir das Modell wechseln, ohne den Code zu ändern. Das Container-Image müssen wir dafür auch nicht neu bauen. Das macht den Vergleich verschiedener Modelle einfacher. Außerdem kann jeder seine eigene Konfiguration verwenden und trotzdem mit demselben Code arbeiten.
+- **Temperature:** Wir haben in `einordnen.py` den Wert `0.0` gewählt. Die Zuordnung soll möglichst gleich bleiben, kreative Antworten brauchen wir hier nicht. Bei unseren Sampling-Versuchen waren die Antworten damit am gleichmäßigsten. Falsche Zuordnungen verhindert der Wert aber nicht.
+- **Schema:** Wenn der Dienst die Schema-Vorgabe unterstützt und durchsetzt, hält die Antwort die vorgegebene JSON-Struktur ein. Inhaltlich kann die Zuordnung trotzdem falsch sein. Zum Beispiel kann das Modell eine erlaubte Kategorie wählen, die nicht zur Mail passt. Mit Pydantic prüfen wir zusätzlich, ob die Antwort zum erwarteten Format passt.
+- **Lokal oder Cloud:** Lokal würden wir ein Modell wegen des Datenschutzes und zur Nutzung ohne Internet wählen. Für die Cloud sprechen leistungsfähigere Modelle und dass wir keine eigene Hardware betreiben müssen. Lokal hängt die Geschwindigkeit dafür stark vom eigenen Rechner ab. Bei einem Cloud-Dienst müssen wir mögliche Kosten und den Umgang mit den übermittelten Daten beachten.
+
