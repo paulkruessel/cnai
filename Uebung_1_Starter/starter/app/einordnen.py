@@ -67,7 +67,7 @@ def einordnen(mail: str, versuche: int = 3) -> Anfrage:
         if content is None:
             raise RuntimeError("Leere Antwort vom LLM.")
         try:
-            ergebnis = Anfrage.model_validate_json(content)
+            ergebnis = Anfrage.model_validate_json(content) # ToDo: Ergebnis nie initialisiert, aber wird im print abgerufen.
         except:
             if i == versuche - 1:
                 raise RuntimeError("Could not validate Answer.")
