@@ -24,7 +24,7 @@ services:
     build: ./app
     env_file: .env
     volumes:
-      - ./app:/app   # Code-Änderungen wirken sofort, ohne neuen Build
+      - ./app:/app:Z # SELinux: Container darf auf den Code zugreifen; Code-Änderungen wirken sofort, ohne neuen Build
     depends_on:
       modell-laden:
         condition: service_completed_successfully
