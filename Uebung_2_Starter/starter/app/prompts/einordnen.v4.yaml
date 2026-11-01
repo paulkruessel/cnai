@@ -2,7 +2,7 @@
 # Diese Datei nicht mehr ändern. Verbesserungen kommen in einordnen.v2.yaml.
 name: einordnen
 version: 4
-beschreibung: System-Prompt aus Übung 1, ohne Beispiele
+beschreibung: Alle Beispiele sind nun JSONs und die Eingabe wird mit Tags markiert.
 autor: Starter
 erstellt: 2026-10-13
 temperature: 0
