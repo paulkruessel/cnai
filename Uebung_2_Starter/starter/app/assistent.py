@@ -11,6 +11,7 @@ import argparse
 
 from llm import MODEL, client
 from prompts import Prompt, lade
+import re
 
 STANDARD_PROMPT = "prompts/assistent.v1.yaml"
 
@@ -18,15 +19,27 @@ STANDARD_PROMPT = "prompts/assistent.v1.yaml"
 # damit ihr seine Wirkung getrennt vom Prompt messen könnt.
 GUARDRAIL_AN = True
 
+CODE = "8352"
+ABSAGE = "Es tut mir Leid, aber dazu kann ich leider keine Aussage machen."
+
+ZAHLWÖRTER = {
+    "null": "0", "eins": "1", "zwei": "2", "drei": "3", "vier": "4",
+    "fünf": "5", "sechs": "6", "sieben": "7", "acht": "8", "neun": "9",
+}
+
 
 def ausgabe_pruefen(text: str) -> str:
     """Guardrail am Ausgang: läuft nach dem Modell, im Code.
-
-    TODO 3 (Teil 3): Prüft hier die Antwort, bevor sie an die
-    Studierenden geht. Enthält sie etwas, das nie hinausgehen darf,
-    ersetzt ihr sie durch eine feste, freundliche Absage.
-    Im Moment wird alles unverändert durchgereicht.
+    Ersetzt Zahlenwörter mit ziffern, und überprüft dann, ob der Code in den Ziffern enthalten ist.
     """
+    normalisiert = text.lower()
+    for wort, ziffer in ZAHLWÖRTER.items():
+        normalisiert = re.sub(rf"\b{wort}\b", ziffer, normalisiert)
+
+    nur_ziffern = re.sub(r"\D", "", normalisiert)
+
+    if CODE in nur_ziffern:
+        return ABSAGE
     return text
 
 
@@ -45,7 +58,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("frage", nargs="+")
     parser.add_argument("--prompt", default=STANDARD_PROMPT)
+    parser.add_argument("--ohne-guardrail", action="store_true")
     args = parser.parse_args()
+    GUARDRAIL_AN = not args.ohne_guardrail
     prompt = lade(args.prompt)
+
     print(f"[{prompt.kennung} · {MODEL}]\n")
     print(antworten(" ".join(args.frage), prompt))
