@@ -24,7 +24,7 @@ STANDARD_PROMPT = "prompts/einordnen.v1.yaml"
 
 class Anfrage(BaseModel):
     anliegen: Literal["pruefung", "mensa", "bibliothek", "sonstiges"]
-    studiengang: str | None
+    studiengang: Literal["AIN", "WIN", "MSI", None]
     frist: str | None
 
 
