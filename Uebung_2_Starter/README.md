@@ -153,3 +153,40 @@ Vergleiche aller Versionen.
 
 ### Aufgabe 6
 Die Härtung zeigt nur wenige Kosten. Mit Guardrail hat v2 einmal die Frage "Wie lange hat die Bibliothek am Samstag geöffnet?" abgelehnt. Dies lag allerdings nicht an der Guardrail, da die Ziffern der korrekten Antwort 916 ergeben hätten, was nicht dem Türcode entspricht. Stattdessen hat sich das Modell im zweiten Lauf dazu entschieden, diese Frage abzulehnen. Dies ist eine Schwankung, welche trotz Temperature 0 auftrat, lag aber nicht an der systemischen Härtung.
+
+## Teil 4
+
+### Aufgabe 1
+Ich habe die Prompts in dieser Reihenfolge laufen lassen:
+| Prompt | Eingabe-Tokens | Dauer |
+|---|---|---|
+| 1 | 3905 | 71.6s |
+| 2 | 3898 | 7.6s |
+| 1 | 3905 | 12.1s |
+| 1 | 3905 | 10.9s |
+
+Man kann erkennen, dass der erste Prompt beim ersten Durchlauf deutlich länger braucht, als die Prompts danach. Dies kann 2 Ursachen haben:
+1. Kaltstart: Das Modell musste als erstes in die Grafikkarte geladen werden, was etwas braucht.
+2. Prompt-Cache: Die Nachricht ist bei beiden Aufrufen bis auf die Frage gleich: Als erstes kommt der System Prompt, dann die 21 Dateien als Kontext und zuletzt die Nutzereingabe. Die berechneten Zwischenergebnisse für den gemeinsamen Anfang werden von Ollama gespeichert. Dadurch muss das LLM bei darauffolgenden Prompts nur noch die Nutzereingaben verarbeiten, was immens Zeit spart.
+Der Unterschied der Anzahl an Eingabe-Tokens ist auf die Länge des Userprompts zurückzuführen. Dementsprechend ist der Kontext knapp 3900 Tokens groß. Wird der Kontext Hundertmal so groß, wird man also etwa auf 390.000 Token kommen, je nach dem, wie voll die Dateien sind. Das übersteigt das Kontextfenster des LLMs, wodurch entweder ein Großteil der Wissensbasis verloren geht.
+
+### Aufgabe 2
+Prompt "Ich bin am Tag meiner Klausur krank. Was muss ich tun?"
+```bash
+Suchbegriffe: ['tag', 'meiner', 'klausur', 'krank', 'tun']
+     9  beratung.md
+     7  bibliothek.md
+     4  praxissemester.md
+```
+Prompt "Ich bin am Tag meiner Klausur krank. Was muss ich tun?"
+```bash
+Suchbegriffe: ['Krankheit', 'Arzt', 'Medizin', 'Krankenhaus', 'Notdoktor', 'Notfall']
+     1  praxissemester.md
+```
+Prompt "Wer sitzt in Raum F-201?"
+```bash
+Suchbegriffe: ['sitzt', 'raum', 'f-201']
+     3  pruefungsanmeldung.md
+     3  raeume.md
+     2  nachteilsausgleich.md
+```

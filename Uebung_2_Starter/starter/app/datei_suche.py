@@ -77,7 +77,16 @@ def suche(begriffe: list[str], max_dateien: int = MAX_DATEIEN) -> list[Treffer]:
     #   - Nur Dateien mit mindestens einem Treffer kommen in die Liste,
     #     als Treffer(datei, text, wert).
     #   - Sortiert absteigend nach wert und gebt die ersten max_dateien zurück.
-    raise NotImplementedError("TODO 4a in datei_suche.py")
+    ergebnisse: list[Treffer] = []
+    for file, text  in dokumente().items():
+        normal = text.lower()
+        value = sum(normal.count(begriff.lower()) for begriff in begriffe)
+        if value > 0:
+            ergebnisse.append(Treffer(file, text, value))
+
+    ergebnisse.sort(key=lambda t: t.wert, reverse=True)
+    return ergebnisse[:max_dateien]
+        
 
 
 def abrufen(frage: str, nur_woerter: bool = False) -> tuple[list[Treffer], list[str], float]:
