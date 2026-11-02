@@ -70,13 +70,6 @@ def suche(begriffe: list[str], max_dateien: int = MAX_DATEIEN) -> list[Treffer]:
     besten max_dateien Dateien mit ihrem ganzen Text, Dateien ohne Treffer
     nie.
     """
-    # TODO 4a (Teil 4.2): Setzt die Suche um.
-    #   - dokumente() liefert {dateiname: text} für alle Dateien.
-    #   - Zählt für jede Datei, wie oft die Begriffe darin vorkommen,
-    #     ohne auf Groß- und Kleinschreibung zu achten (str.lower, str.count).
-    #   - Nur Dateien mit mindestens einem Treffer kommen in die Liste,
-    #     als Treffer(datei, text, wert).
-    #   - Sortiert absteigend nach wert und gebt die ersten max_dateien zurück.
     ergebnisse: list[Treffer] = []
     for file, text  in dokumente().items():
         normal = text.lower()
@@ -85,7 +78,12 @@ def suche(begriffe: list[str], max_dateien: int = MAX_DATEIEN) -> list[Treffer]:
             ergebnisse.append(Treffer(file, text, value))
 
     ergebnisse.sort(key=lambda t: t.wert, reverse=True)
-    return ergebnisse[:max_dateien]
+    # return ergebnisse[:max_dateien]
+
+    alle = dokumente()
+    anzahl_dateien = len(alle)
+
+    gewichte: dict[str, float] = {}
         
 
 

@@ -44,13 +44,36 @@ def zerlege(datei: str, text: str) -> list[Treffer]:
     Abschnitt über drei Themen bekommt einen Vektor, der zu keinem der
     Themen richtig passt.
     """
-    # TODO 4b (Teil 4.3): Zerlegt sinnvoller, zum Beispiel so:
-    #   - Ein Abschnitt beginnt bei jeder Zwischenüberschrift "## ".
-    #   - Dokumente ohne Zwischenüberschrift teilt ihr an Leerzeilen in Absätze.
-    #   - Stellt jedem Abschnitt den Titel des Dokuments voran (erste Zeile,
-    #     beginnt mit "# "), damit er auch allein verständlich bleibt.
-    # Danach den Index neu bauen: rag.py --index
-    return [Treffer(datei, text.strip())]
+
+    zeilen = text.strip().splitlines()
+    titel = ""
+    if zeilen and zeilen[0].startswith('# '):
+        titel = zeilen[0]
+
+    rest = text.strip()
+    if titel:
+        rest = "\n".join(zeilen[1:])
+
+    if re.search(r"^## ", rest, flags=re.MULTILINE):
+        teile = re.split(r"\n(?=## )", rest)
+    else:
+        teile = re.split(r"\n\s*\n", rest)
+
+    abschnitte: list[str] = []
+    for t in teile:
+        t = t.strip()
+        if not t:
+            continue
+        if titel:
+            abschnitt_text = f"{titel}\n{t}"
+        else:
+            abschnitt_text = t
+        abschnitte.append(Treffer(datei, abschnitt_text))
+
+    if not abschnitte:
+        abschnitte.append(Treffer(datei, text.strip()))
+
+    return abschnitte
 
 
 def einbetten(texte: list[str]) -> list[list[float]]:
