@@ -11,6 +11,7 @@ oder mit --woerter einfach aus den Wörtern der Frage.
 """
 
 import argparse
+import math
 import re
 import time
 
@@ -70,21 +71,31 @@ def suche(begriffe: list[str], max_dateien: int = MAX_DATEIEN) -> list[Treffer]:
     besten max_dateien Dateien mit ihrem ganzen Text, Dateien ohne Treffer
     nie.
     """
+
     ergebnisse: list[Treffer] = []
+    ergebnisse.sort(key=lambda t: t.wert, reverse=True)
+    anzahl_dateien = len(dokumente())
+
+    gewichte: dict[str, float] = {}
+    for begriff in begriffe:
+        b = begriff.lower()
+        dateien_mit_begriff = 0
+        for text in dokumente().values():
+            if b in text.lower():
+                dateien_mit_begriff += 1
+        if dateien_mit_begriff > 0:
+            gewichte[b] = math.log((anzahl_dateien + 1) / dateien_mit_begriff)
+
     for file, text  in dokumente().items():
         normal = text.lower()
-        value = sum(normal.count(begriff.lower()) for begriff in begriffe)
+        value = 0.0
+        for b, gewicht in gewichte.items():
+            value += normal.count(b) * gewicht
         if value > 0:
             ergebnisse.append(Treffer(file, text, value))
 
     ergebnisse.sort(key=lambda t: t.wert, reverse=True)
-    # return ergebnisse[:max_dateien]
-
-    alle = dokumente()
-    anzahl_dateien = len(alle)
-
-    gewichte: dict[str, float] = {}
-        
+    return ergebnisse[:max_dateien]
 
 
 def abrufen(frage: str, nur_woerter: bool = False) -> tuple[list[Treffer], list[str], float]:

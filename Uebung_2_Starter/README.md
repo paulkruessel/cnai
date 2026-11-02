@@ -377,3 +377,42 @@ Man sollte umsteigen, wenn die Wissensbasis einen großen Teil des Kontextfenste
 
 Ich habe mich dazu entschieden, seltene Begriffe stärker zu gewichten, da das gerade bei F-201 eine gute Verbesserung gewesen wäre.
 Um diese Gewichtung umzusetzen, ist nun ein Treffer nicht mehr 1 wert, sondern $log((N+1) / df)$ mit N als Zahl der Dateien und df die Zahl der Dateien (aktuell 21), in denen der Begriff vorkommt. Diese Verbesserung wurde in datei_suche.suche() umgesetzt.
+Das Resultat zeigt direkt das gewollte Ergebnis:
+```bash
+docker compose run --rm app datei_suche.py --woerter "Wer sitzt in Raum F-201?"
+Suchbegriffe: ['sitzt', 'raum', 'f-201']
+     4  praxissemester.md
+     2  pruefungsanmeldung.md
+     2  raeume.md
+
+Das Praktikantenamt sitzt in Raum F-201.
+
+  Kontext: praxissemester.md, pruefungsanmeldung.md, raeume.md
+  719 Eingabe-Tokens · Suche 0.00 s · Antwort 15.2 s · llama3.2:3b
+
+docker compose run --rm --build app vergleich_wissen.py woerter datei
+Modell: llama3.2:3b · Embedding: granite-embedding:278m · 14 Fragen
+
+Frage                                                Typ            woerter     datei
+Bis wann hat die Bibliothek am Samstag offen?        direkt             K A       K A
+Was zahlt ein Gast in der Mensa für ein Hauptgerich  direkt             K A       K A
+Wie viel kostet eine Ersatz-Campuskarte?             direkt             · ·       K A
+Was regelt Paragraph 17 der Prüfungsordnung?         kennung            K A       K A
+Wofür brauche ich das Formular PA-12?                kennung            K A       K A
+Wer sitzt in Raum F-201?                             kennung            K A       · ·
+Ich bin am Tag meiner Klausur krank. Was muss ich t  umschrieben        · ·       · ·
+Wo kann ich mein Auto abstellen und was kostet das?  umschrieben        · ·       K A
+Wo kann ich nachts noch lernen?                      umschrieben        · ·       · ·
+Ich bin total gestresst und komme nicht mehr klar.   umschrieben        K A       K A
+Was passiert, wenn ich das Geld fürs nächste Semest  umschrieben        K A       K A
+Wie oft darf ich eine Prüfung schreiben, bevor es e  umschrieben        · A       · A
+Kann ich mit dem Semesterticket ICE fahren?          direkt             K A       K A
+Wann ist die nächste Party der Fachschaft Informati  fehlt              - A       - A
+
+K = richtige Datei im Kontext, A = Antwort enthält ein erwartetes Stichwort
+
+| Variante | Kontext richtig | Antwort richtig | Eingabe-Tokens (Ø) | Dauer (Ø) |
+|---|---|---|---|---|
+| woerter | 8/13 | 10/14 | 694 | 10.1 s |
+| datei | 9/13 | 11/14 | 612 | 12.1 s |
+```
