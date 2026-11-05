@@ -215,6 +215,7 @@ Dadurch wird direkt bei der Definition des Tools markiert, dass das Tool schreib
 # Teil 3
 ## Aufgabe 1
 ```bash
+docker compose restart campus-mcp
 docker compose run --rm -e LLM_MODEL=qwen2.5:3b app messen.py prompts/agent.v1.yaml prompts/agent.v2.yaml workflow
 Richtige Antworten nach Typ:
 Variante                       datum      direkt      wissen mehrschritt  schreibend        ohne       fehlt
