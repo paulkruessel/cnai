@@ -80,19 +80,19 @@ def heute() -> str:
     tag = date.fromisoformat(os.environ["HEUTE"]) if os.environ.get("HEUTE") else date.today()
     return f"Heute ist {WOCHENTAGE[tag.weekday()]}, der {tag.isoformat()}."
 
-
-# TODO 2: ein eigenes Werkzeug tage_bis(datum)
-#
-# Sprachmodelle rechnen schlecht mit Datumsangaben. Schreibt eine Funktion
-# tage_bis(datum: str) -> str, die zurückgibt, wie viele Tage von heute
-# (siehe heute(), also auch HEUTE aus .env beachten) bis zu einem Datum im
-# Format JJJJ-MM-TT sind. Liegt das Datum in der Vergangenheit, sagt sie das.
-# Ein ungültiges Datum beantwortet sie mit einer Fehlermeldung, nicht mit
-# einer Exception.
-#
-# Tragt das Werkzeug danach in LOKALE_WERKZEUGE ein, mit Beschreibung und
-# JSON-Schema. Testet es mit:
-#   docker compose run --rm app agent.py "Wie viele Tage habe ich noch, bis die Prüfungsanmeldung endet?"
+def tage_bis(datum: str):
+    heute = date.fromisoformat(os.environ["HEUTE"]) if os.environ.get("HEUTE") else date.today()
+    try:
+        ziel = date.fromisoformat(datum)
+    except ValueError:
+        return f"Fehler: '{datum}' ist kein korrektes Datum in diesem Format: 'YYYY-MM-TT'. Bitte schreibe das Datum in dieses Format um und versuche es erneut."
+    timedelta = ziel - heute
+    if timedelta.days > 0:
+        return f"Bis zum Datum {ziel.isoformat()} sind es noch {timedelta.days} Tage."
+    elif timedelta.days < 0:
+        return f"Das Datum {ziel.isoformat()} liegt {abs(timedelta.days)} in der Vergangenheit."
+    else:
+        return f"Heute ist das Datum {ziel.isoformat()}, es sind also 0 Tage bis dahin."
 
 
 LOKALE_WERKZEUGE = [
@@ -129,6 +129,22 @@ LOKALE_WERKZEUGE = [
         beschreibung="Gibt das heutige Datum und den Wochentag zurück.",
         parameter={"type": "object", "properties": {}},
         funktion=heute,
+    ),
+    Werkzeug(
+        name="tage_bis",
+        beschreibung=(
+            "Berechnet die Tage zwischen heute und einem Zieldatum. "
+            "Schreibe das Zieldatum unbedingt in ISO-Format 'YYYY-MM-TT'. "
+            "Nutze dieses Tool, wenn der Nutzer nach einer Dauer bis zu einem Datum fragt."
+        ),
+        parameter={
+            "type": "object",
+            "properties": {
+                "datum": {"type": "string", "description": "Zieldatum in ISO-Format 'YYYY-MM-TT'. Z.B. 2026-11-05 für den 05. November 2026."},
+            },
+            "required": ["datum"],
+        },
+        funktion=tage_bis,
     ),
 ]
 

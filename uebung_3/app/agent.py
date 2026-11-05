@@ -77,11 +77,12 @@ def werkzeug_ausfuehren(aufruf, verzeichnis: dict[str, Werkzeug], bestaetigen=fr
 
     werkzeug = verzeichnis[name]
 
-    # TODO 3b: Schreibende Werkzeuge nur nach Bestätigung ausführen
-    #
-    # Ist werkzeug.schreibend gesetzt, fragt zuerst bestaetigen(werkzeug, argumente).
-    # Sagt die Person nein, führt das Werkzeug NICHT aus und gebt einen Schritt
-    # mit fehler="abgelehnt" und einer klaren Nachricht an das Modell zurück.
+    if werkzeug.schreibend and not bestaetigen(werkzeug, argumente):
+        return Schritt(name, argumente,
+                       f"ABGELEHNT: Der Nutzer hat {name} nicht bestätigt. Das Werkzeug wurde daher"
+                       f"NICHT ausgeführt, es wurde also auch nichts verändert. Versuche es NICHT erneut, sondern"
+                       f"sage der Person, dass die Aktion abgebrochen wurde.",
+                       "abgelehnt")
 
     try:
         ergebnis = str(werkzeug.funktion(**argumente))
@@ -106,22 +107,36 @@ def agent(
     ergebnis = Ergebnis(antwort="")
     start = time.perf_counter()
 
-    # TODO 1: die Agent-Schleife
-    #
-    # Wiederholt höchstens max_schritte Mal:
-    #  1. Modell aufrufen: client.chat.completions.create(model=MODEL,
-    #     messages=nachrichten, tools=tools, temperature=prompt.temperature,
-    #     max_tokens=500). Zählt modellaufrufe, eingabe_tokens (usage.prompt_tokens)
-    #     und ausgabe_tokens (usage.completion_tokens) in `ergebnis` mit.
-    #  2. Hat die Antwort keine tool_calls, ist ihr Text die Antwort:
-    #     ergebnis.antwort und ergebnis.sekunden setzen, ergebnis zurückgeben.
-    #  3. Sonst: die Nachricht des Modells an den Verlauf anhängen
-    #     (nachricht.model_dump(exclude_none=True)), dann jeden Aufruf mit
-    #     werkzeug_ausfuehren() ausführen, den Schritt in ergebnis.schritte
-    #     speichern, bei zeigen=True mit zeige_schritt() ausgeben und das
-    #     Ergebnis als {"role": "tool", "tool_call_id": aufruf.id,
-    #     "content": schritt.ergebnis} anhängen.
-    # Wer hier ankommt, hat das Limit erreicht: der Code darunter bricht ab.
+    for i in range(max_schritte):
+        # 1. Modell aufrufen
+        antwort = client.chat.completions.create(model=MODEL, messages=nachrichten, tools=tools, temperature=prompt.temperature, max_tokens=500)
+        ergebnis.modellaufrufe += 1
+        # if to satisfy pylance type check
+        if antwort.usage:
+            ergebnis.eingabe_tokens += antwort.usage.prompt_tokens
+            ergebnis.ausgabe_tokens += antwort.usage.completion_tokens
+
+        # 2. Check for Tool Calls
+
+        nachricht = antwort.choices[0].message
+
+        if not nachricht.tool_calls:
+            ergebnis.antwort = nachricht.content if nachricht.content is not None else ""
+            ergebnis.abgebrochen = False
+            ergebnis.sekunden = time.perf_counter() - start
+            return ergebnis
+
+        nachrichten.append(nachricht.model_dump(exclude_none=True))
+        for call in nachricht.tool_calls:
+            schritt = werkzeug_ausfuehren(call, verzeichnis, bestaetigen)
+            ergebnis.schritte.append(schritt)
+            if zeigen:
+                zeige_schritt(schritt)
+            nachrichten.append({
+                "role": "tool",
+                "tool_call_id": call.id,
+                "content": schritt.ergebnis,
+            })
 
     ergebnis.antwort = f"Abgebrochen nach {max_schritte} Modellaufrufen ohne Antwort."
     ergebnis.abgebrochen = True

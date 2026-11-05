@@ -28,7 +28,7 @@ services:
     environment:
       - HEUTE=${HEUTE:-}   # dieselbe feste Uhr wie in der App, aus .env
     volumes:
-      - ./campus_mcp:/srv   # Änderungen am Server: docker compose restart campus-mcp
+      - ./campus_mcp:/srv:z   # Änderungen am Server: docker compose restart campus-mcp
     ports:
       - "8000:8000"
 
@@ -39,7 +39,7 @@ services:
     build: ./app
     env_file: .env
     volumes:
-      - ./app:/app   # Code-Änderungen wirken sofort, ohne neuen Build
+      - ./app:/app:z   # Code-Änderungen wirken sofort, ohne neuen Build
     depends_on:
       modell-laden:
         condition: service_completed_successfully

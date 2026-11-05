@@ -76,18 +76,43 @@ def raum_frei(raum: str, datum: str) -> str:
     return (f"{raum} am {datum} ({tag}): frei um {', '.join(frei) or 'keinem Slot'}. "
             f"Belegt: {', '.join(f'{s} ({g})' for s, g in sorted(belegt.items())) or 'nichts'}.")
 
+@mcp.tool()
+def raum_buchen(raum: str, datum: str, uhrzeit: str, name: str):
+    """Bucht einen angegebenen Raum an einem freien Tag zu einer freien Uhrzeit.
+    
+    raum: Raumnummer wie O-108 (Gebäude, Bindestrich, Nummer)
+    datum: Datum im Format JJJJ-MM-TT, zum Beispiel 2026-11-05
+    uhrzeit: Eine gültige Uhrzeit, zu welchem Zeitpunkt der Raum gebucht wird im Format hh:mm. Zum Beispiel: 09:45
+    name: Der Name auf den gebucht werden soll, zum Beispiel 'CNAI Vorlesung'
+    """
 
-# TODO 3a: Werkzeug raum_buchen
-#
-# Schreibt ein Werkzeug raum_buchen(raum, datum, uhrzeit, name), das einen
-# freien Slot für eine Person bucht und in `buchungen` einträgt.
-#  - Prüft wie raum_frei, ob Raum und Datum gültig sind.
-#  - uhrzeit muss einer der SLOTS sein, sonst Fehlermeldung mit den gültigen Slots.
-#  - Ist der Slot belegt, gebt eine Fehlermeldung zurück, die sagt, was frei ist.
-#  - Sonst eintragen und eine Bestätigung zurückgeben.
-# Fehler gebt ihr als Text zurück, der mit "Fehler:" beginnt, statt eine
-# Exception zu werfen. Das Modell liest den Text und kann sich korrigieren.
-# Der Docstring ist die Beschreibung, die das Modell sieht. Schreibt ihn sorgfältig.
+    raum = raum.strip().upper()
+    if raum not in BELEGUNG["raeume"]:
+        return f"Fehler: Raum {raum} gibt es nicht oder er ist nicht buchbar. Nutze raeume_auflisten."
+    try:
+        tag = _wochentag(datum)
+    except ValueError:
+        return f"Fehler: '{datum}' ist kein Datum im Format JJJJ-MM-TT."
+    if tag in ("samstag", "sonntag"):
+        return f"{raum} ist am {tag} geschlossen."
+
+    uhrzeit = uhrzeit.strip()
+    if len(uhrzeit) == 4 and uhrzeit[1] == ":":
+        uhrzeit = "0" + uhrzeit
+    if uhrzeit not in SLOTS:
+        return f"Fehler: '{uhrzeit}' ist kein gültiges Zeitfenster. Gültig sind: {', '.join(SLOTS)}"
+
+    name = name.strip()
+
+    if not name:
+        return f"Fehler: Bitte einen Namen angeben, auf den gebucht wird."
+
+    belegt = _belegt(raum, datum)
+    if uhrzeit in belegt:
+        frei = [s for s in SLOTS if s not in belegt]
+        return f"Fehler: {raum} ist am {datum} ({tag}) um {uhrzeit} belegt. Frei sind noch: {', '.join(frei) or 'keine'}."
+    buchungen[(raum, datum, uhrzeit)] = name
+    return f"Gebucht: {raum} am {datum} ({tag}) um {uhrzeit} für {name}."
 
 
 @mcp.tool()
